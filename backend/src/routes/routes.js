@@ -1,10 +1,17 @@
-// const orderController = require('../controllers/orderController');
-
+const userController = require('../controllers/userController');
+const { runMigrations } = require('../config/migrations');
 module.exports = [
-  // STORE ROUTES
-  // {
-  //   method: 'POST',
-  //   url: '/store',
-  //   handler: storeController.createStore
-  // },
+  // USER ROUTES
+  {
+    method: 'POST',
+    url: '/create-user',
+    handler: userController.createUser
+  },
+
+
+  {
+    method: 'GET',
+    url: '/migration',
+    handler: runMigrations
+  }
 ]

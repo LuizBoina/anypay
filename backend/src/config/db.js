@@ -11,7 +11,7 @@ const dbConnector = async (fastify, options) => {
     })
     await client.connect();
     console.log("Database is connected!");
-    fastify.decorate('db', { client })
+    fastify.decorate('db', { client });
   } catch (error) {
     console.error('connection error', error.stack);
   }
