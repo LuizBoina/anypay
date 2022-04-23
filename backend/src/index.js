@@ -21,8 +21,7 @@ app.register(require('fastify-cors'), {
   methods: ['GET', 'PUT', 'POST', 'DELETE']
 });
 
-// SQL Databsae
-// app.register(db);
+app.register(db);
 
 app.decorate('verifyJWT', async (request, reply) => {
   try {
@@ -31,7 +30,7 @@ app.decorate('verifyJWT', async (request, reply) => {
     }
     const token = request.headers.authorization.replace('Bearer ', '');
     const decoded = jwt.verify(token, process.env.JWT_TOKEN);
-    const user = await User.findById(decoded.userId);
+    // const user = await User.findById(decoded.userId);
     if (!user) {
       throw new Error('Authentication failed!');
     }
