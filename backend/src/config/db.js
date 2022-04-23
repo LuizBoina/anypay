@@ -3,13 +3,15 @@ const { Client } = require('pg');
 
 const dbConnector = async (fastify, options) => {
   try {
-    const client = await (new Client({
+    const client = new Client({
       connectionString: process.env.DATABASE_URL,
       ssl: {
         rejectUnauthorized: false
       }
-    })).connect();
+    })
+    await client.connect();
     console.log("Database is connected!");
+    fastify.decorate('db', { client })
   } catch (error) {
     console.error('connection error', error.stack);
   }
