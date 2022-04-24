@@ -1,3 +1,4 @@
+// schema to validated userCreate
 const createUserValidator = {
   body: {
     type: "object",

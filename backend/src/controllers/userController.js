@@ -3,6 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcrypt');
 const { getCurrencyByCode } = require('./currencyController');
 
+// check if exist at least one user with the same
+// email, phonumber and document
 const doesUserExist = async (user, dbClient) => {
   try {
     const text = `
@@ -20,7 +22,8 @@ const doesUserExist = async (user, dbClient) => {
   }
 }
 
-exports.getUserById = async id => {
+// search user by id
+exports.getUserById = async (id, client) => {
   try {
     const text = `
       SELECT * FROM users
@@ -28,7 +31,7 @@ exports.getUserById = async id => {
       LIMIT 1;
     `;
     const values = [id];
-    // const result = await executeQuery({ text, values });
+    const result = await client.query({ text, values });
     console.log(result)
   } catch (error) {
     console.log("error: ", error)
@@ -37,9 +40,11 @@ exports.getUserById = async id => {
 
 exports.createUser = async (req, res) => {
   try {
+    // get body and client db instance
     const { body, dbClient } = req;
     const isExistentUser = await doesUserExist(body, dbClient);
     if (!isExistentUser) {
+      // if user don't exist, create a uuid, hash the password and same the user on db
       const id = uuidv4();
       const password = await bcrypt.hash(body.password, 9);
       const currencyId = await getCurrencyByCode(body.principalCurrency, dbClient);
@@ -50,6 +55,7 @@ exports.createUser = async (req, res) => {
       const values = [id, body.username, password, body.email,
         body.birthday, body.document, body.phonenumber, currencyId];
       await dbClient.query({ text, values });
+      // response with jwt token, userId and username
       const token = jwt.sign(
         {
           userId: id,

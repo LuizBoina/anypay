@@ -10,6 +10,7 @@ const app = fastify({
   logger: true
 });
 
+// handle CORS
 app.register(require('fastify-cors'), {
   origin: (origin, cb) => {
     if (/localhost/.test(origin) || !origin) {
@@ -21,27 +22,33 @@ app.register(require('fastify-cors'), {
   methods: ['GET', 'PUT', 'POST', 'DELETE']
 });
 
+// add db connection
 app.register(db);
 
+// authentication middleware
 app.decorate('verifyJWT', async (request, reply) => {
   try {
+    // check if token was sent
     if (!request.headers.authorization) {
       throw new Error('No token was sent');
     }
     const token = request.headers.authorization.replace('Bearer ', '');
+    // decode the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await getUserById(decoded.userId);
+    // search for the user using the id in the token
+    const { rows } = await getUserById(decoded.userId, client);
+    const user = rows[0];
     if (!user) {
       throw new Error('Authentication failed!');
     }
-    if (user.role !== decoded.role) {
-      throw new Error('Authentication failed!');
-    }
+    // if everything is ok, so add user to requisition
+    // to facilitated the proccess
     req.user = user;
   } catch (error) {
     reply.code(401).send(error);
   }
 })
+  // add plugin to allow authentication middleware
   .register(fastifyAuth)
   .after(() => {
     const fastifyRoutes = async (fastify, opts) => {
@@ -51,6 +58,8 @@ app.decorate('verifyJWT', async (request, reply) => {
       });
 
       routes.forEach((route, index) => {
+        // if the route is protect, eg. user need to be authenticated to access,
+        // so add the middleware to check the jwt token that was sent
         if (route.protected) {
           const { protected, ..._route } = route;
           fastify.route({
@@ -62,16 +71,19 @@ app.decorate('verifyJWT', async (request, reply) => {
           fastify.route(route);
         }
       });
+      // a route to test
       fastify.get("/", async () => {
         return {
           Message: "Fastify is On Fire"
         }
       });
     }
+    // add prefix to routes
     app.register(fastifyRoutes, { prefix: '/api/v1' })
   });
 
 
+// start the server
 const start = async () => {
   try {
     await app.listen(PORT, '0.0.0.0')

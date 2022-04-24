@@ -8,7 +8,7 @@ module.exports = [
     handler: userController.createUser
   },
 
-
+  // route to run de migrations
   {
     method: 'GET',
     url: '/migration',

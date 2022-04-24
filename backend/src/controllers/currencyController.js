@@ -1,3 +1,4 @@
+// function to get currency by the code
 exports.getCurrencyByCode = async (code, dbClient) => {
   try {
     const text = `
